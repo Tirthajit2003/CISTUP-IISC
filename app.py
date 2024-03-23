@@ -28,7 +28,7 @@ def upload_file():
 
     # Prepare detected objects
     objects_detected = [{'class': classNames[int(box.cls[0])],
-                         'confidence': math.ceil((box.conf[0] * 100)) / 100}
+                         'confidence': str(math.ceil((box.conf[0] * 100)))+"%"}
                         for r in results for box in r.boxes]
 
     # Count vehicles
