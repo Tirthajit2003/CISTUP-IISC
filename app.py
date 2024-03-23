@@ -1,16 +1,14 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+from ultralytics import YOLO
 import cv2
+import math
 import numpy as np
-import os
 
 app = Flask(__name__)
 CORS(app)
 
-UPLOAD_FOLDER = 'uploads'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
+model = YOLO("yolo-Weights/yolov8n.pt")
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -21,24 +19,22 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'No image selected'})
 
-    if file:
-        filename = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(filename)
+    # Perform object detection
+    img = cv2.imdecode(np.fromstring(request.files['image'].read(), np.uint8), cv2.IMREAD_COLOR)
+    results = model(img)
 
-        # Perform image processing (Example: Convert to grayscale)
-        img = cv2.imread(filename)
-        processed_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        processed_filename = 'processed_' + file.filename
-        processed_filepath = os.path.join(UPLOAD_FOLDER, processed_filename)
-        cv2.imwrite(processed_filepath, processed_img)
+    # Convert class index to class name
+    classNames = model.names
 
-        return jsonify({'processedImage': processed_filename})
+    # Prepare detected objects
+    objects_detected = [{'class': classNames[int(box.cls[0])],
+                         'confidence': math.ceil((box.conf[0] * 100)) / 100}
+                        for r in results for box in r.boxes]
 
+    # Count vehicles
+    vehicle_count = sum(1 for obj in objects_detected if obj['class'] == 'car' or obj['class'] == 'truck')
 
-@app.route('/processed-image/<filename>', methods=['GET'])
-def get_processed_image(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
-
+    return jsonify({'objectsDetected': objects_detected, 'vehicleCount': vehicle_count})
 
 if __name__ == '__main__':
     app.run(debug=True)
