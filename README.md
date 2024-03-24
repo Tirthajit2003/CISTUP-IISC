@@ -24,4 +24,4 @@ This application allows users to upload images of transportation scenes and perf
 
 ### Docker for containerization
 
-##Demo video can be found out in the /record/screen-capture commit
+## Demo video can be found out in the /record/screen-capture commit
