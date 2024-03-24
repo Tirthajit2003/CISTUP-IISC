@@ -1,6 +1,6 @@
 # Transportation Image Object Detection
 
-Welcome to the Transportation Image Object Detection web application! This application allows users to upload images of transportation scenes and performs object detection to identify various vehicles present in the images.
+This application allows users to upload images of transportation scenes and performs object detection using YOLO v8 to identify various vehicles present in the images.
 
 ## Features
 
